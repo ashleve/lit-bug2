@@ -32,30 +32,18 @@ class BoringModel(LightningModule):
     def training_step(self, batch, batch_idx):
         output = self.layer(batch)
         loss = self.loss(batch, output)
-        return {"loss": loss}
-
-    def training_step_end(self, training_step_outputs):
-        return training_step_outputs
-
-    def training_epoch_end(self, outputs) -> None:
-        torch.stack([x["loss"] for x in outputs]).mean()
-
-    def validation_step(self, batch, batch_idx):
-        output = self.layer(batch)
-        loss = self.loss(batch, output)
-        return {"x": loss}
-
-    def validation_epoch_end(self, outputs) -> None:
-        torch.stack([x['x'] for x in outputs]).mean()
+        self.log("train/loss", loss, on_epoch=True)
+        return {"loss": loss, "wowoowowo": "wowo"}
 
     def test_step(self, batch, batch_idx):
         output = self.layer(batch)
         loss = self.loss(batch, output)
         self.log('fake_test_acc', loss)
-        return {"y": loss}
+        return {"y": loss, "wowoowowo": "wowo"}
 
-    def test_epoch_end(self, outputs) -> None:
-        torch.stack([x["y"] for x in outputs]).mean()
+    # uncomment this to fix the bug
+    # def test_epoch_end(self, outputs) -> None:
+    #     torch.stack([x["y"] for x in outputs]).mean()
 
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.layer.parameters(), lr=0.1)
@@ -66,21 +54,25 @@ class BoringModel(LightningModule):
 num_samples = 10000
 
 train = RandomDataset(32, num_samples)
-train = DataLoader(train, batch_size=32)
+train = DataLoader(train, batch_size=32, num_workers=12)
 
 val = RandomDataset(32, num_samples)
-val = DataLoader(val, batch_size=32)
+val = DataLoader(val, batch_size=32, num_workers=12)
 
 test = RandomDataset(32, num_samples)
-test = DataLoader(test, batch_size=32)
+test = DataLoader(test, batch_size=32, num_workers=12)
 
 model = BoringModel()
 
+ckpt = pl.callbacks.ModelCheckpoint(monitor="haha")
+
 trainer = pl.Trainer(
+    min_epochs=1, 
     max_epochs=1, 
-    progress_bar_refresh_rate=20
 )
 
 trainer.fit(model, train, val)
+
+print(trainer.callback_metrics)
 
 trainer.test(test_dataloaders=test)
