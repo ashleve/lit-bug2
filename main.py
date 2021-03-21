@@ -39,11 +39,13 @@ class BoringModel(LightningModule):
         output = self.layer(batch)
         loss = self.loss(batch, output)
         self.log('fake_test_acc', loss)
-        return {"y": loss, "wowoowowo": "wowo"}
+        return {"y": loss, "param": None}
+        # return {"output": output} # this crashes the run
 
+        
     # uncomment this to fix the bug
     # def test_epoch_end(self, outputs) -> None:
-    #     torch.stack([x["y"] for x in outputs]).mean()
+    #     pass
 
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.layer.parameters(), lr=0.1)
